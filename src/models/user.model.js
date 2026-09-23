@@ -19,8 +19,9 @@ const userSchema = new mongoose.Schema(
 
 const User = mongoose.model("User", userSchema);
 
-export const getAll = async () => {
-  return await User.find();
+export const getAll = async (sortOrder) => {
+  const order = sortOrder === "desc" ? -1 : 1;
+  return await User.find().sort({ createdAt: order });
 };
 
 export const getById = async (id) => {

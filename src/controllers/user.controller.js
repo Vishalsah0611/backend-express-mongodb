@@ -3,7 +3,8 @@ import * as response from "../utils/response.js";
 
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.getAll();
+    const { sort } = req.query;
+    const users = await User.getAll(sort);
     return response.success(res, 200, "Users fetched successfully", users);
   } catch (err) {
     return response.error(res, 500, err.message);
