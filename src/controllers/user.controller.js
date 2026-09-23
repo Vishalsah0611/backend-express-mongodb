@@ -1,13 +1,19 @@
 import * as User from "../models/user.model.js";
 import * as response from "../utils/response.js";
+import { handleError } from "../utils/handleError.js";
 
 export const getAllUsers = async (req, res) => {
   try {
-    const { sort } = req.query;
-    const users = await User.getAll(sort);
+    const { name, email, sort, order } = req.query;
+
+    const filters = {};
+    if (name) filters.name = name;
+    if (email) filters.email = email;
+
+    const users = await User.getAll(filters, sort, order);
     return response.success(res, 200, "Users fetched successfully", users);
   } catch (err) {
-    return response.error(res, 500, err.message);
+    return handleError(res, err);
   }
 };
 
@@ -21,7 +27,7 @@ export const getUserById = async (req, res) => {
 
     return response.success(res, 200, "User fetched successfully", user);
   } catch (err) {
-    return response.error(res, 500, err.message);
+    return handleError(res, err);
   }
 };
 
@@ -36,7 +42,7 @@ export const createUser = async (req, res) => {
     const newUser = await User.create({ name, email });
     return response.success(res, 201, "User created successfully", newUser);
   } catch (err) {
-    return response.error(res, 500, err.message);
+    return handleError(res, err);
   }
 };
 
@@ -56,7 +62,7 @@ export const updateUser = async (req, res) => {
 
     return response.success(res, 200, "User updated successfully", updatedUser);
   } catch (err) {
-    return response.error(res, 500, err.message);
+    return handleError(res, err);
   }
 };
 
@@ -70,6 +76,6 @@ export const deleteUser = async (req, res) => {
 
     return response.success(res, 200, "User deleted successfully");
   } catch (err) {
-    return response.error(res, 500, err.message);
+    return handleError(res, err);
   }
 };

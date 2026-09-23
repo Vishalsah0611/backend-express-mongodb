@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
       lowercase: true,
+      unique: true,
       match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     },
   },
@@ -24,9 +25,20 @@ const userSchema = new mongoose.Schema(
 
 const User = mongoose.model("User", userSchema);
 
-export const getAll = async (sortOrder) => {
-  const order = sortOrder === "desc" ? -1 : 1;
-  return await User.find().sort({ createdAt: order });
+export const getAll = async (filters = {}, sortField = "createdAt", order = "asc") => {
+  const query = {};
+
+  if (filters.name) {
+    query.name = { $regex: filters.name, $options: "i" };
+  }
+
+  if (filters.email) {
+    query.email = { $regex: filters.email, $options: "i" };
+  }
+
+  const sortOrder = order === "desc" ? -1 : 1;
+
+  return await User.find(query).sort({ [sortField]: sortOrder });
 };
 
 export const getById = async (id) => {
