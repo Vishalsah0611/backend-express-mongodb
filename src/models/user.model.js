@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      match: /^[A-Za-z ]+$/,
     },
 
     email: {
@@ -15,18 +14,29 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
       unique: true,
-      match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {
     timestamps: true,
+    versionKey: false,
+    toJSON: {
+      transform: (doc, ret) => {
+        delete ret.isDeleted;
+        return ret;
+      },
+    },
   }
 );
 
 const User = mongoose.model("User", userSchema);
 
 export const getAll = async (filters = {}, sortField = "createdAt", order = "asc") => {
-  const query = {};
+  const query = { isDeleted: false };
 
   if (filters.name) {
     query.name = { $regex: filters.name, $options: "i" };
@@ -42,21 +52,16 @@ export const getAll = async (filters = {}, sortField = "createdAt", order = "asc
 };
 
 export const getById = async (id) => {
-  return await User.findById(id);
+  return await User.findOne({ _id: id, isDeleted: false });
 };
 
 export const create = async ({ name, email }) => {
-  const newUser = await User.create({
-    name,
-    email,
-  });
-
-  return newUser;
+  return await User.create({ name, email });
 };
 
 export const update = async (id, updates) => {
-  const user = await User.findByIdAndUpdate(
-    id,
+  return await User.findOneAndUpdate(
+    { _id: id, isDeleted: false },
     {
       name: updates.name,
       email: updates.email,
@@ -66,14 +71,12 @@ export const update = async (id, updates) => {
       runValidators: true,
     }
   );
-
-  return user;
 };
 
-export const remove = async (id) => {
-  const user = await User.findByIdAndDelete(id);
-
-  if (!user) return false;
-
-  return true;
+export const softDelete = async (id) => {
+  return await User.findOneAndUpdate(
+    { _id: id, isDeleted: false },
+    { isDeleted: true },
+    { new: true }
+  );
 };

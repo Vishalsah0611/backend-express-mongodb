@@ -8,6 +8,11 @@ const app = express();
 
 connectDB();
 
+app.use((req, res, next) => {
+  console.log("Incoming request:", req.method, req.path);
+  next();
+});
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -17,5 +22,5 @@ app.get("/", (req, res) => {
 app.use("/api", indexRouter);
 
 app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+  console.log("Server is running on http://localhost:3000");
 });
