@@ -1,75 +1,39 @@
-import * as User from "../models/user.model.js";
+import * as User from "../helpers/user.helper.js";
 import * as response from "../utils/response.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
-export const getAllUsers = async (req, res, next) => {
-  try {
-    const { name, email, sort, order } = req.query;
+export const getAllUsers = asyncHandler(async (req, res) => {
+  const { name, email, sort, order } = req.query;
 
-    const filters = {};
-    if (name) filters.name = name;
-    if (email) filters.email = email;
+  const filters = {};
+  if (name) filters.name = name;
+  if (email) filters.email = email;
 
-    const users = await User.getAll(filters, sort, order);
-    return response.success(res, 200, "Users fetched successfully", users);
-  } catch (err) {
-    next(err);
-  }
-};
+  const users = await User.getAll(filters, sort, order);
+  return response.success(res, 200, "Users fetched successfully", users);
+});
 
-export const getUserById = async (req, res, next) => {
-  try {
-    const user = await User.getById(req.params.id);
+export const getUserById = asyncHandler(async (req, res) => {
+  const user = await User.getById(req.params.id);
+  if (!user) return response.error(res, 404, "User not found");
+  return response.success(res, 200, "User fetched successfully", user);
+});
 
-    if (!user) {
-      return response.error(res, 404, "User not found");
-    }
+export const createUser = asyncHandler(async (req, res) => {
+  const { name, email } = req.body;
+  const newUser = await User.create({ name, email });
+  return response.success(res, 201, "User created successfully", newUser);
+});
 
-    return response.success(res, 200, "User fetched successfully", user);
-  } catch (err) {
-    next(err);
-  }
-};
+export const updateUser = asyncHandler(async (req, res) => {
+  const { name, email } = req.body;
+  const updatedUser = await User.update(req.params.id, { name, email });
+  if (!updatedUser) return response.error(res, 404, "User not found");
+  return response.success(res, 200, "User updated successfully", updatedUser);
+});
 
-export const createUser = async (req, res, next) => {
-  try {
-    const { name, email } = req.body;
-    const newUser = await User.create({ name, email });
-    return response.success(res, 201, "User created successfully", newUser);
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const updateUser = async (req, res, next) => {
-  try {
-    const { name, email } = req.body;
-
-    if (name === undefined && email === undefined) {
-      return response.error(res, 400, "Provide at least one field to update (name or email)");
-    }
-
-    const updatedUser = await User.update(req.params.id, { name, email });
-
-    if (!updatedUser) {
-      return response.error(res, 404, "User not found");
-    }
-
-    return response.success(res, 200, "User updated successfully", updatedUser);
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const deleteUser = async (req, res, next) => {
-  try {
-    const deletedUser = await User.softDelete(req.params.id);
-
-    if (!deletedUser) {
-      return response.error(res, 404, "User not found");
-    }
-
-    return response.success(res, 200, "User deleted successfully");
-  } catch (err) {
-    next(err);
-  }
-};
+export const deleteUser = asyncHandler(async (req, res) => {
+  const deletedUser = await User.softDelete(req.params.id);
+  if (!deletedUser) return response.error(res, 404, "User not found");
+  return response.success(res, 200, "User deleted successfully");
+});

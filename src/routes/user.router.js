@@ -1,17 +1,14 @@
-import express from "express";
+import { Router } from "express";
 import * as userController from "../controllers/user.controller.js";
-import {
-  validateCreateUser,
-  validateUpdateUser,
-  validateId,
-} from "../validators/user.validator.js";
+import validate from "../middlewares/validate.js";
+import { createUserSchema, updateUserSchema, idParamSchema } from "../validators/user.validator.js";
 
-const router = express.Router();
+const router = Router();
 
 router.get("/", userController.getAllUsers);
-router.get("/:id", validateId, userController.getUserById);
-router.post("/", validateCreateUser, userController.createUser);
-router.put("/:id", validateId, validateUpdateUser, userController.updateUser);
-router.delete("/:id", validateId, userController.deleteUser);
+router.get("/:id", validate(idParamSchema, "params"), userController.getUserById);
+router.post("/", validate(createUserSchema), userController.createUser);
+router.put("/:id", validate(idParamSchema, "params"), validate(updateUserSchema), userController.updateUser);
+router.delete("/:id", validate(idParamSchema, "params"), userController.deleteUser);
 
 export default router;
